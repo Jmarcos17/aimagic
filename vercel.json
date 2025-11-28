@@ -1,13 +1,26 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "public",
-  "framework": null,
-  "installCommand": "npm install",
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/index.php"
+      "src": "api/index.php",
+      "use": "@vercel/php"
     }
-  ]
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.php"
+    }
+  ],
+  "functions": {
+    "api/index.php": {
+      "runtime": "php8.2"
+    }
+  },
+  "buildCommand": "composer install --no-dev --optimize-autoloader && npm install && npm run build",
+  "env": {
+    "APP_ENV": "production",
+    "APP_DEBUG": "false"
+  }
 }
 
