@@ -3,6 +3,7 @@
 	"scripts": {
 		"lint": "eslint ./resources/views/page",
 		"dev": "vite",
+		"prebuild": "node scripts/create-livewire-stub.js",
 		"build": "vite build",
 		"clean": "vite clean",
 		"watch": "gulp watch"
