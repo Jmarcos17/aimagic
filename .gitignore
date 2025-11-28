@@ -16,3 +16,4 @@ yarn-error.log
 *.log
 .DS_Store
 Thumbs.db
+node_modules/*\n!node_modules/livewire/
