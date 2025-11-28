@@ -137,7 +137,10 @@ export default ( { mode } ) => {
 				'@public': '/public',
 				'@themeAssets': '/public/themes',
 				'~nodeModules': path.resolve( __dirname, 'node_modules' ),
-				'~vendor': path.resolve( __dirname, 'vendor' ),
+				// Fallback para vendor: tenta vendor primeiro, depois node_modules
+				'~vendor': fs.existsSync( path.resolve( __dirname, 'vendor' ) )
+					? path.resolve( __dirname, 'vendor' )
+					: path.resolve( __dirname, 'node_modules' ),
 			}
 		}
 	} );
