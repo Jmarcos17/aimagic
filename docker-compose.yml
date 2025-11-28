@@ -1,0 +1,117 @@
+version: '3.8'
+
+services:
+  magicai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: magicai-app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      # Aplicação
+      - APP_NAME=MagicAI
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=false
+      - APP_URL=${APP_URL:-http://localhost:8080}
+      
+      # Banco de Dados (Neon PostgreSQL)
+      - DB_CONNECTION=pgsql
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_SSLMODE=${DB_SSLMODE:-require}
+      
+      # Cache e Sessões
+      - CACHE_DRIVER=file
+      - SESSION_DRIVER=file
+      - QUEUE_CONNECTION=database
+      
+      # Mail (configure conforme necessário)
+      - MAIL_MAILER=${MAIL_MAILER:-smtp}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_ENCRYPTION=${MAIL_ENCRYPTION:-tls}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@example.com}
+      - MAIL_FROM_NAME="${APP_NAME}"
+    volumes:
+      # Persistir storage e cache
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+      # Persistir .env (opcional, pode usar variáveis de ambiente)
+      - ./.env:/var/www/html/.env:ro
+    networks:
+      - magicai-network
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    container_name: magicai-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - magicai-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Queue Worker (Opcional - para processar jobs)
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: magicai-queue
+    restart: unless-stopped
+    command: php artisan queue:work database --sleep=3 --tries=3 --max-time=3600
+    environment:
+      - APP_NAME=MagicAI
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=false
+      - DB_CONNECTION=pgsql
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_SSLMODE=${DB_SSLMODE:-require}
+      - CACHE_DRIVER=file
+      - SESSION_DRIVER=file
+      - QUEUE_CONNECTION=database
+    volumes:
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+      - ./.env:/var/www/html/.env:ro
+    networks:
+      - magicai-network
+    depends_on:
+      - magicai
+      - redis
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  magicai-network:
+    driver: bridge
+
