@@ -137,8 +137,8 @@ export default ( { mode } ) => {
 				'@public': '/public',
 				'@themeAssets': '/public/themes',
 				'~nodeModules': path.resolve( __dirname, 'node_modules' ),
-				// Fallback para vendor: tenta vendor primeiro, depois node_modules
-				'~vendor': fs.existsSync( path.resolve( __dirname, 'vendor' ) )
+				// Fallback para vendor: tenta vendor primeiro, depois node_modules (para builds sem Composer)
+				'~vendor': fs.existsSync( path.resolve( __dirname, 'vendor/livewire/livewire' ) )
 					? path.resolve( __dirname, 'vendor' )
 					: path.resolve( __dirname, 'node_modules' ),
 			}

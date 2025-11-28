@@ -3,6 +3,7 @@ services:
     name: magicai
     runtime: php
     plan: starter
+    region: oregon
     buildCommand: |
       composer install --no-dev --optimize-autoloader
       npm install
@@ -19,4 +20,5 @@ services:
       - key: LOG_CHANNEL
         value: stderr
     healthCheckPath: /
+    autoDeploy: true
 
